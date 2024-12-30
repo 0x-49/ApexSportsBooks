@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_PUBLIC_CLOUDFRONT_URL = "https://d2ickwhyapygai.cloudfront.net"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
