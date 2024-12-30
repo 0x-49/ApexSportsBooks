@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Helmet } from 'react-helmet';
-import TopMarketsChart from '../../components/TopMarketsChart';
-import TrafficGraphModal from '../../components/TrafficGraphModal';
-import MarkdownContent from '../../components/MarkdownContent';
-import { Sportsbook } from '../../types/sportsbook';
-import { getSportsbookData } from '../../lib/sportsbooks';
-
-interface PageParams {
-  sportsbook: string;
-}
-
-interface TopCountry {
-  name: string;
-  traffic: number;
-  percentage: number;
-}
+import { HelmetProvider, Helmet } from 'react-helmet-async';
+import TopMarketsChart from 'components/TopMarketsChart';
+import TrafficGraphModal from 'components/TrafficGraphModal';
+import MarkdownContent from 'components/MarkdownContent';
+import { Sportsbook } from 'types/sportsbook';
+import { getSportsbookData } from 'lib/sportsbooks';
 
 const Page: React.FC = () => {
-  const { sportsbook: sportsbookId } = useParams<PageParams>() as { sportsbook: string };
+  const { sportsbook: sportsbookId } = useParams<{ sportsbook?: string }>();
   const [sportsbook, setSportsbook] = useState<Sportsbook | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +17,9 @@ const Page: React.FC = () => {
   useEffect(() => {
     const fetchSportsbook = async () => {
       try {
+        if (!sportsbookId) {
+          throw new Error('Sportsbook ID is required');
+        }
         const data = await getSportsbookData(sportsbookId);
         setSportsbook(data);
       } catch (err) {
@@ -47,10 +40,8 @@ const Page: React.FC = () => {
     return <div>Error: {error || 'Sportsbook not found'}</div>;
   }
 
-  const totalTraffic = sportsbook.estimatedMonthlyVisits || 0;
-
   return (
-    <>
+    <HelmetProvider>
       <Helmet>
         <title>{sportsbook.Name} - Detailed Review and Analysis</title>
         <meta
@@ -101,8 +92,8 @@ const Page: React.FC = () => {
           <div className="p-6 sm:p-8 bg-gray-50">
             <h2 className="text-2xl font-bold mb-6">Traffic Statistics</h2>
             <TopMarketsChart
-              totalTraffic={totalTraffic}
-              topCountries={sportsbook.topCountries || []}
+              totalTraffic={sportsbook.estimatedMonthlyVisitsSep2024}
+              topCountries={sportsbook.topCountries}
             />
             <button
               onClick={() => setShowTrafficModal(true)}
@@ -117,17 +108,17 @@ const Page: React.FC = () => {
             <h2 className="text-2xl font-bold mb-6">Top Markets</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sportsbook.topCountries
-                ?.sort((a: TopCountry, b: TopCountry) => b.traffic - a.traffic)
+                .sort((a, b) => b.visitsShare - a.visitsShare)
                 .slice(0, 5)
-                .map((country: TopCountry, index: number) => (
+                .map((country) => (
                   <div
-                    key={country.name}
+                    key={country.countryCode}
                     className="bg-white p-4 rounded-lg shadow border border-gray-200"
                   >
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium">{country.name}</span>
+                      <span className="text-lg font-medium">{country.countryName}</span>
                       <span className="text-sm text-gray-500">
-                        {((country.traffic / (sportsbook.estimatedMonthlyVisits['2024-09'] || 1)) * 100).toFixed(1)}%
+                        {country.visitsShare.toFixed(1)}%
                       </span>
                     </div>
                     <div className="mt-2">
@@ -135,7 +126,7 @@ const Page: React.FC = () => {
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{
-                            width: `${Math.min((country.traffic / (sportsbook.estimatedMonthlyVisits['2024-09'] || 1)) * 100, 100)}%`,
+                            width: `${Math.min(country.visitsShare, 100)}%`,
                           }}
                         />
                       </div>
@@ -158,10 +149,10 @@ const Page: React.FC = () => {
         isOpen={showTrafficModal}
         onClose={() => setShowTrafficModal(false)}
         countryName={sportsbook.Name}
-        trafficHistory={sportsbook.trafficHistory || {}}
+        trafficHistory={sportsbook.trafficHistory}
         FlagComponent={() => <img src={sportsbook.Flag} alt={`${sportsbook.Name} flag`} />}
       />
-    </>
+    </HelmetProvider>
   );
 };
 

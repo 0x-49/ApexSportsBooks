@@ -1,131 +1,84 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Sportsbook } from '../types/sportsbook';
-import { countryToCode } from '../utils/countryMapping';
-import { getAllCountries, getCountrySpecificTraffic, formatTraffic } from '../utils/sportsBookAnalytics';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Sportsbook } from 'types/sportsbook';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 interface SearchBarProps {
   sportsbooks: Sportsbook[];
-  onCountrySelect?: (country: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ sportsbooks, onCountrySelect }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const SearchBar: React.FC<SearchBarProps> = ({ sportsbooks }) => {
+  const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const countries = getAllCountries(sportsbooks);
+  const [filteredSportsbooks, setFilteredSportsbooks] = useState<Sportsbook[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredCountries = countries.filter(country =>
-    country.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredSportsbooks = sportsbooks.filter(sportsbook =>
-    sportsbook.Name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleCountrySelect = (country: string) => {
-    if (onCountrySelect) {
-      onCountrySelect(country);
+  useEffect(() => {
+    if (query.trim() === '') {
+      setFilteredSportsbooks([]);
+      return;
     }
+
+    const filtered = sportsbooks.filter(sportsbook =>
+      sportsbook.Name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredSportsbooks(filtered);
+  }, [query, sportsbooks]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    setIsOpen(true);
+  };
+
+  const handleSelectSportsbook = (sportsbook: Sportsbook) => {
+    navigate(`/sportsbook/${sportsbook.UniqueID}`);
     setIsOpen(false);
-    setSearchTerm('');
+    setQuery('');
   };
 
   return (
-    <div className="relative" ref={wrapperRef}>
-      <div className="flex items-center">
+    <div className="relative" ref={searchRef}>
+      <div className="relative">
+        <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
         <input
           type="text"
-          placeholder="Search countries or sportsbooks..."
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setIsOpen(true);
-          }}
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={query}
+          onChange={handleSearch}
+          placeholder="Search sportsbooks..."
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {searchTerm && (
-          <button
-            onClick={() => {
-              setSearchTerm('');
-              setIsOpen(false);
-            }}
-            className="absolute right-3 text-gray-500 hover:text-gray-700"
-          >
-            ×
-          </button>
-        )}
       </div>
 
-      {isOpen && searchTerm && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
-          {/* Countries Section */}
-          {filteredCountries.length > 0 && (
-            <div className="p-2">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">
-                Countries
-              </h3>
-              {filteredCountries.map((country) => (
-                <div
-                  key={country}
-                  className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleCountrySelect(country)}
-                >
-                  <img
-                    src={`https://flagcdn.com/24x18/${countryToCode[country]?.toLowerCase()}.png`}
-                    alt={country}
-                    className="w-5 h-4 mr-2"
-                  />
-                  <span>{country}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Sportsbooks Section */}
-          {filteredSportsbooks.length > 0 && (
-            <div className="p-2 border-t border-gray-200">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase px-3 py-2">
-                Sportsbooks
-              </h3>
-              {filteredSportsbooks.map((sportsbook) => (
-                <Link
-                  key={sportsbook.Name}
-                  to={`/sportsbook/${encodeURIComponent(sportsbook.Name.toLowerCase())}`}
-                  className="flex items-center px-3 py-2 hover:bg-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <img
-                    src={sportsbook.LogoIcon}
-                    alt={sportsbook.Name}
-                    className="w-6 h-6 mr-2 object-contain"
-                  />
-                  <div>
-                    <div className="font-medium">{sportsbook.Name}</div>
-                    <div className="text-sm text-gray-500">
-                      {formatTraffic(Object.values(sportsbook.estimatedMonthlyVisits || {})[0] || 0)} monthly visits
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-
-          {filteredCountries.length === 0 && filteredSportsbooks.length === 0 && (
-            <div className="p-4 text-center text-gray-500">
-              No results found
-            </div>
-          )}
+      {isOpen && filteredSportsbooks.length > 0 && (
+        <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto">
+          {filteredSportsbooks.map((sportsbook) => (
+            <button
+              key={sportsbook.UniqueID}
+              onClick={() => handleSelectSportsbook(sportsbook)}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            >
+              <div className="flex items-center">
+                <img
+                  src={sportsbook.LogoIcon}
+                  alt={`${sportsbook.Name} logo`}
+                  className="w-6 h-6 mr-3"
+                />
+                <span>{sportsbook.Name}</span>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>

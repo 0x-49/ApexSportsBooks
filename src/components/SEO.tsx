@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { MetaData } from '../utils/seo';
 
 interface SEOProps {
@@ -7,7 +8,7 @@ interface SEOProps {
 }
 
 const SEO: React.FC<SEOProps> = ({ metadata, structuredData }) => {
-  const { title, description, keywords, canonicalUrl } = metadata;
+  const { title, description, keywords = [], canonicalUrl } = metadata;
 
   useEffect(() => {
     // Update title
@@ -29,7 +30,9 @@ const SEO: React.FC<SEOProps> = ({ metadata, structuredData }) => {
       metaKeywords.setAttribute('name', 'keywords');
       document.head.appendChild(metaKeywords);
     }
-    metaKeywords.setAttribute('content', keywords.join(', '));
+    if (keywords) {
+  metaKeywords.setAttribute('content', keywords.join(', '));
+}
 
     // Update or create canonical URL
     let canonicalLink = document.querySelector('link[rel="canonical"]');
@@ -98,7 +101,28 @@ const SEO: React.FC<SEOProps> = ({ metadata, structuredData }) => {
     };
   }, [title, description, keywords, canonicalUrl, structuredData]);
 
-  return null; // This component doesn't render anything
+  return (
+    <Helmet>
+      {/* Basic Meta Tags */}
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      {keywords.length > 0 && <meta name="keywords" content={keywords.join(', ')} />}
+      
+      {/* Canonical URL */}
+      {canonicalUrl && <link rel="canonical" href={`https://apexsportsbooks.com${canonicalUrl}`} />}
+      
+      {/* Open Graph Meta Tags */}
+      <meta property="og:type" content="website" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      {canonicalUrl && <meta property="og:url" content={`https://apexsportsbooks.com${canonicalUrl}`} />}
+      
+      {/* Twitter Card Meta Tags */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+    </Helmet>
+  );
 };
 
 export default SEO;

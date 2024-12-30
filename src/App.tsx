@@ -1,32 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import AllSportsbooks from './components/AllSportsbooks';
-import FeaturedSportsbooks from './components/FeaturedSportsbooks';
-import SportsbookPage from './components/SportsbookPage';
-import CountrySportsbooks from './components/CountrySportsbooks';
-import SearchBar from './components/SearchBar';
-import Footer from './components/Footer';
-import rawSportsbooks from './data/sportsbooks.json';
-import { transformSportsbook } from './utils/transformSportsbook';
-import type { Sportsbook } from './types/sportsbook';
-import { CountryFilter } from './components/CountryFilter';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { CountryFilter } from 'components/CountryFilter';
+import FeaturedSportsbooks from 'components/FeaturedSportsbooks';
+import AllSportsbooks from 'components/AllSportsbooks';
+import CountrySportsbooks from 'components/CountrySportsbooks';
+import SportsbookPage from 'components/SportsbookPage';
+import SearchBar from 'components/SearchBar';
+import Footer from 'components/Footer';
+import rawSportsbooks from 'data/sportsbooks.json';
+import { transformSportsbook } from 'utils/transformSportsbook';
+import type { Sportsbook } from 'types/sportsbook';
 import 'flag-icons/css/flag-icons.min.css';
 
 const sportsbooks: Sportsbook[] = rawSportsbooks.map(transformSportsbook);
 
-// Configure future flags for React Router v7
-const routerConfig = {
-  future: {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true
-  }
-};
-
 function App() {
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [countries, setCountries] = useState<Array<{ name: string; code: string; flag: string }>>([]);
-  const [filteredSportsbooks, setFilteredSportsbooks] = useState<Sportsbook[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -53,7 +43,7 @@ function App() {
   };
 
   return (
-    <Router {...routerConfig}>
+    <Router>
       <div className="min-h-screen bg-gray-100">
         <nav className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,7 +112,7 @@ function App() {
                   {/* Legacy country routes with redirect */}
                   <Route 
                     path="/country/:country" 
-                    element={<LegacyCountryRedirect />} 
+                    element={<Navigate to="/top-sportsbooks-in-:country" replace />} 
                   />
                   
                   {/* Sportsbook review routes */}
@@ -137,13 +127,6 @@ function App() {
       </div>
     </Router>
   );
-}
-
-// Helper components for redirects
-function LegacyCountryRedirect() {
-  const location = useLocation();
-  const country = location.pathname.split('/').pop();
-  return <Navigate to={`/top-sportsbooks-in-${country}`} replace />;
 }
 
 export default App;

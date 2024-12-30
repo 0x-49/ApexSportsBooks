@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Components } from 'react-markdown';
 
@@ -123,72 +123,74 @@ const MarkdownContent: React.FC<MarkdownContentProps> = ({ url }) => {
   }
 
   const components: Components = {
-    code({ className, children, ...props }) {
+    code({ className, children }) {
       const match = /language-(\w+)/.exec(className || '');
       return match ? (
         <SyntaxHighlighter
-          {...props}
-          style={tomorrow as any}
+          style={tomorrow}
           language={match[1]}
           PreTag="div"
         >
           {String(children).replace(/\n$/, '')}
         </SyntaxHighlighter>
       ) : (
-        <code className={className} {...props}>
+        <code className={className}>
           {children}
         </code>
       );
     },
-    h1: ({ ...props }) => (
-      <h1 className="text-3xl font-bold mb-6 mt-8" {...props} />
+    h1: ({ children }) => (
+      <h1 className="text-3xl font-bold mb-6 mt-8">{children}</h1>
     ),
-    h2: ({ ...props }) => (
-      <h2 className="text-2xl font-bold mb-4 mt-6" {...props} />
+    h2: ({ children }) => (
+      <h2 className="text-2xl font-bold mb-4 mt-6">{children}</h2>
     ),
-    h3: ({ ...props }) => (
-      <h3 className="text-xl font-bold mb-3 mt-5" {...props} />
+    h3: ({ children }) => (
+      <h3 className="text-xl font-bold mb-3 mt-5">{children}</h3>
     ),
-    p: ({ ...props }) => (
-      <p className="text-gray-700 mb-4 leading-relaxed" {...props} />
+    p: ({ children }) => (
+      <p className="text-gray-700 mb-4 leading-relaxed">{children}</p>
     ),
-    ul: ({ ...props }) => (
-      <ul className="list-disc pl-6 mb-4 space-y-2" {...props} />
+    ul: ({ children }) => (
+      <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>
     ),
-    ol: ({ ...props }) => (
-      <ol className="list-decimal pl-6 mb-4 space-y-2" {...props} />
+    ol: ({ children }) => (
+      <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>
     ),
-    li: ({ ...props }) => (
-      <li className="mb-1" {...props} />
+    li: ({ children }) => (
+      <li className="mb-1">{children}</li>
     ),
-    blockquote: ({ ...props }) => (
-      <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600" {...props} />
+    blockquote: ({ children }) => (
+      <blockquote className="border-l-4 border-gray-300 pl-4 italic my-4 text-gray-600">{children}</blockquote>
     ),
-    a: ({ ...props }) => (
+    a: ({ href, children }) => (
       <a 
         className="text-blue-600 hover:text-blue-800 underline" 
         target="_blank"
         rel="noopener noreferrer"
-        {...props} 
-      />
+        href={href}
+      >
+        {children}
+      </a>
     ),
-    img: ({ ...props }) => (
+    img: ({ src, alt }) => (
       <img 
         className="rounded-lg shadow-md my-4 max-w-full h-auto"
         loading="lazy"
-        {...props} 
+        src={src}
+        alt={alt}
       />
     ),
-    table: ({ ...props }) => (
+    table: ({ children }) => (
       <div className="overflow-x-auto my-4">
-        <table className="min-w-full divide-y divide-gray-200" {...props} />
+        <table className="min-w-full divide-y divide-gray-200">{children}</table>
       </div>
     ),
-    th: ({ ...props }) => (
-      <th className="px-4 py-2 bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" {...props} />
+    th: ({ children }) => (
+      <th className="px-4 py-2 bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">{children}</th>
     ),
-    td: ({ ...props }) => (
-      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500" {...props} />
+    td: ({ children }) => (
+      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{children}</td>
     ),
   };
 
