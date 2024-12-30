@@ -1,9 +1,9 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Sportsbook } from '../types/sportsbook';
 import SportsbookCard from './SportsbookCard';
 import SEO from './SEO';
-import { generateSportsbookMetadata, generateStructuredData } from '../utils/seo';
-import type { Sportsbook } from '../types/sportsbook';
+import { generateCountryMetadata } from '../utils/seo';
 
 interface CountrySportsbooksProps {
   sportsbooks: Sportsbook[];
@@ -11,93 +11,64 @@ interface CountrySportsbooksProps {
 
 const CountrySportsbooks: React.FC<CountrySportsbooksProps> = ({ sportsbooks }) => {
   const { country } = useParams<{ country: string }>();
-  
-  if (!country) return null;
+  const formattedCountry = country ? country.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
 
-  // Convert URL format back to proper country name
-  const properCountryName = country
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-    .replace('In ', '');
-
-  // Filter sportsbooks by country
-  const countrySportsbooks = sportsbooks.filter(sportsbook =>
-    sportsbook.topCountries.some(tc => {
-      const countryName = typeof tc === 'string' ? tc : tc.countryName;
-      return countryName.toLowerCase() === properCountryName.toLowerCase();
-    })
+  const filteredSportsbooks = sportsbooks.filter(sportsbook => 
+    sportsbook.topCountries.some(tc => 
+      tc.countryName.toLowerCase() === formattedCountry.toLowerCase()
+    )
   );
 
-  // Sort by traffic in the country
-  const sortedSportsbooks = [...countrySportsbooks].sort((a, b) => {
-    const getTraffic = (sb: Sportsbook) => {
-      const countryData = sb.topCountries.find(tc => {
-        const countryName = typeof tc === 'string' ? tc : tc.countryName;
-        return countryName.toLowerCase() === properCountryName.toLowerCase();
-      });
-      
-      if (typeof countryData === 'object' && 'visitsShare' in countryData) {
-        return countryData.visitsShare;
-      }
-      return 0;
-    };
-
-    return getTraffic(b) - getTraffic(a);
-  });
-
-  // Generate SEO metadata
-  const metadata = {
-    title: `Top Sportsbooks in ${properCountryName} - Best Betting Sites`,
-    description: `Find the best sports betting sites in ${properCountryName}. Compare sportsbooks, read reviews, and get the latest information on betting options and bonuses.`,
-    canonicalUrl: `/top-sportsbooks-in-${country}`,
-    ogType: 'website',
-  };
-
-  // Generate structured data
-  const structuredData = generateStructuredData('ItemList', {
-    name: `Top Sportsbooks in ${properCountryName}`,
-    description: `Best sports betting sites in ${properCountryName}`,
-    itemListElement: sortedSportsbooks.map((sportsbook, index) => ({
+  const baseUrl = window.location.origin;
+  const metadata = generateCountryMetadata(formattedCountry, filteredSportsbooks.length, baseUrl);
+  
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Top Sportsbooks in ${formattedCountry}`,
+    description: metadata.description,
+    numberOfItems: filteredSportsbooks.length,
+    itemListElement: filteredSportsbooks.map((sportsbook, index) => ({
       '@type': 'ListItem',
       position: index + 1,
       item: {
-        '@type': 'Organization',
+        '@type': 'SportsActivityLocation',
         name: sportsbook.Name,
         description: sportsbook.Description,
         url: sportsbook.URL
       }
     }))
-  });
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <SEO metadata={metadata} structuredData={structuredData} />
       
-      <h1 className="text-3xl font-bold mb-8">
-        Top Sportsbooks in {properCountryName}
+      <h1 className="text-4xl font-bold text-gray-900 mb-8">
+        Top Sportsbooks in {formattedCountry}
       </h1>
       
-      {sortedSportsbooks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedSportsbooks.map((sportsbook) => (
-            <SportsbookCard
-              key={sportsbook.Name}
-              sportsbook={sportsbook}
-              showCountryTraffic={true}
-              country={properCountryName}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-600">
-            No sportsbooks found for {properCountryName}
-          </h2>
-          <p className="mt-4 text-gray-500">
-            Try selecting a different country or view our complete list of sportsbooks.
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredSportsbooks.map((sportsbook) => (
+          <SportsbookCard
+            key={sportsbook.Name}
+            name={sportsbook.Name}
+            description={sportsbook.Description}
+            logo={sportsbook.LogoIcon}
+            url={sportsbook.URL}
+            rating={4.5}
+            estimatedMonthlyVisits={sportsbook.estimatedMonthlyVisits}
+            topCountries={sportsbook.topCountries}
+            showCountryTraffic={true}
+            country={formattedCountry}
+          />
+        ))}
+      </div>
+      
+      {filteredSportsbooks.length === 0 && (
+        <p className="text-center text-gray-500 mt-8">
+          No sportsbooks found for {formattedCountry}
+        </p>
       )}
     </div>
   );

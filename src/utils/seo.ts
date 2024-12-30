@@ -1,7 +1,7 @@
 export interface MetaData {
   title: string;
   description: string;
-  keywords: string[];
+  keywords?: string[];
   canonicalUrl: string;
   ogType: string;
 }
@@ -9,12 +9,15 @@ export interface MetaData {
 export interface StructuredData {
   '@context': string;
   '@type': string;
+  name: string;
+  description: string;
+  url: string;
   [key: string]: any;
 }
 
 type SchemaType = 'Sportsbook' | 'Country' | 'Organization' | 'ItemList';
 
-export function generateCountryMetadata(countryName: string, totalSportsbooks: number): MetaData {
+export function generateCountryMetadata(countryName: string, totalSportsbooks: number, baseUrl: string): MetaData {
   const title = `Top ${totalSportsbooks} Sportsbooks in ${countryName} - Complete Guide`;
   const description = `Compare the best sports betting sites in ${countryName}. In-depth analysis of ${totalSportsbooks} licensed sportsbooks with local traffic data.`;
   const keywords = [
@@ -34,16 +37,12 @@ export function generateCountryMetadata(countryName: string, totalSportsbooks: n
     title,
     description,
     keywords,
-    canonicalUrl: `/top-sportsbooks-in-${countryName.toLowerCase().replace(/\s+/g, '-')}`,
+    canonicalUrl: `${baseUrl}/top-sportsbooks-in-${countryName.toLowerCase().replace(/\s+/g, '-')}`,
     ogType: 'website'
   };
 }
 
-export function generateSportsbookMetadata(
-  sportsbookName: string,
-  monthlyVisits: number,
-  topCountries: string[]
-): MetaData {
+export function generateSportsbookMetadata(sportsbookName: string, monthlyVisits: number, topCountries: string[], baseUrl: string): MetaData {
   const title = `${sportsbookName} Review - Trusted Sportsbook Analysis`;
   const description = `Detailed review of ${sportsbookName}. Monthly traffic: ${formatTraffic(monthlyVisits)}. Available in: ${topCountries.join(', ')}`;
   const keywords = [
@@ -64,7 +63,7 @@ export function generateSportsbookMetadata(
     title,
     description,
     keywords,
-    canonicalUrl: `/review/${sportsbookName.toLowerCase().replace(/\s+/g, '-')}`,
+    canonicalUrl: `${baseUrl}/review/${sportsbookName.toLowerCase().replace(/\s+/g, '-')}`,
     ogType: 'website'
   };
 }

@@ -1,20 +1,10 @@
 {
   "compilerOptions": {
     "composite": true,
-    "incremental": true,
-    "target": "ES2022",
-    "lib": ["ES2023"],
+    "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "emitDeclarationOnly": true,
-    "allowImportingTsExtensions": true
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.*"]
+  "include": ["vite.config.ts"]
 }

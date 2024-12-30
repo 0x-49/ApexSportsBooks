@@ -54,3 +54,21 @@ export async function getSportsbookByName(name: string): Promise<Sportsbook | nu
   const sportsbooks = await getAllSportsbooks();
   return sportsbooks.find(s => s.Name.toLowerCase() === name.toLowerCase()) || null;
 }
+
+export async function getSportsbookData(name: string): Promise<Sportsbook | null> {
+  const sportsbook = await getSportsbookByName(name);
+  
+  if (!sportsbook) {
+    return null;
+  }
+
+  return {
+    ...sportsbook,
+    title: sportsbook.Name,
+    Description: sportsbook.Description,
+    previewDesktop: sportsbook.LogoIcon,
+    LogoIcon: sportsbook.LogoIcon,
+    content: sportsbook.Description,
+    estimatedMonthlyVisitsSep2024: sportsbook.estimatedMonthlyVisits?.['2024-09'] || 0
+  };
+}
