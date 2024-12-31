@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import SEO from './SEO';
 import { generateSportsbookMetadata } from '../utils/seo';
 import type { Sportsbook } from '../types/sportsbook';
@@ -13,13 +13,28 @@ interface SportsbookPageProps {
 }
 
 const SportsbookPage: React.FC<SportsbookPageProps> = ({ sportsbooks }) => {
-  const { name } = useParams<{ name: string }>();
-  const formattedName = name ? name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+  const { name: sportsbookParam } = useParams<{ name: string }>();
+  
+  // Convert URL format to proper case
+  const formattedName = sportsbookParam
+    ? sportsbookParam
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+    : '';
 
-  const sportsbook = sportsbooks.find(s => s.Name.toLowerCase() === formattedName.toLowerCase());
+  // Find sportsbook case-insensitively
+  const sportsbook = sportsbooks.find(
+    s => s.Name.toLowerCase() === formattedName.toLowerCase()
+  );
 
   if (!sportsbook) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4">Sportsbook Not Found</h1>
+        <p>The sportsbook "{formattedName}" could not be found.</p>
+      </div>
+    );
   }
 
   const baseUrl = window.location.origin;

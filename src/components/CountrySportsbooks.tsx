@@ -11,13 +11,30 @@ interface CountrySportsbooksProps {
 
 const CountrySportsbooks: React.FC<CountrySportsbooksProps> = ({ sportsbooks }) => {
   const { country } = useParams<{ country: string }>();
-  const formattedCountry = country ? country.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+  // Convert URL format (e.g., "bolivia") to proper case ("Bolivia")
+  const formattedCountry = country 
+    ? country
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+    : '';
 
+  // Filter sportsbooks case-insensitively
   const filteredSportsbooks = sportsbooks.filter(sportsbook => 
     sportsbook.topCountries.some(tc => 
       tc.countryName.toLowerCase() === formattedCountry.toLowerCase()
     )
   );
+
+  // Add error handling for no results
+  if (filteredSportsbooks.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-4">No Sportsbooks Found</h1>
+        <p>No sportsbooks were found for {formattedCountry}.</p>
+      </div>
+    );
+  }
 
   const baseUrl = window.location.origin;
   const metadata = generateCountryMetadata(formattedCountry, filteredSportsbooks.length, baseUrl);

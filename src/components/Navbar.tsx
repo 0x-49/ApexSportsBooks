@@ -28,17 +28,17 @@ const Navbar: React.FC<NavbarProps> = ({ sportsbooks }) => {
   };
 
   return (
-    <nav className="bg-white shadow-lg">
+    <nav className="bg-parchment-100 shadow-lg border-b border-brown-200">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           <div className="flex">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/" className="flex-shrink-0 flex items-center hover:opacity-90 transition-opacity">
               <img
-                className="h-8 w-auto"
-                src="/logo.png"
+                className="h-14 w-auto"
+                src="https://apex-sportsbooks-content.s3.us-east-1.amazonaws.com/final_logo-removebg-preview.png"
                 alt="ApexSportsbooks"
               />
-              <span className="ml-2 text-xl font-bold text-gray-900">
+              <span className="ml-3 text-2xl font-bold text-brown-800">
                 ApexSportsbooks
               </span>
             </Link>

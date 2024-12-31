@@ -21,6 +21,7 @@ export interface Sportsbook {
   content: string;
   estimatedMonthlyVisitsSep2024: number;
   Flag: string;
+  GrowthRate?: number;
 }
 
 export interface SportsbookCardProps {
